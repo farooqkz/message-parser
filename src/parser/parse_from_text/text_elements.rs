@@ -82,6 +82,21 @@ pub(crate) fn email_address(input: &str) -> IResult<&str, Element, CustomError<&
     }
 }
 
+pub(crate) fn fediverse_handle(input: &str) -> IResult<&str, Element, CustomError<&str>> {
+    let (mut rest, handle) = take_while(|c| c != '@')(input)?;
+    if rest.starts_with('@') {
+        rest = rest.strip_prefix('@').unwrap();
+    }
+    let (_, mut instance) = take_while(|c| c != '\n' && c != '\r' && c != ' ')(rest)?;
+    if instance.ends_with('.') {
+        instance = instance.strip_suffix('.').unwrap();
+    }
+    let url = format!("https://{instance}/@{handle}");
+    let dest = LinkDestination::parse_standalone_with_whitelist(<&str>::clone(url.as_str()))?.1;
+    let label = format!("@{handle}@{instance}");
+    Ok((instance, Element::LabeledLink { label: vec![Element::Text(&label)], destination: dest }))
+}
+
 fn not_link_part_char(c: char) -> bool {
     !matches!(c, ':' | '\n' | '\r' | '\t' | ' ')
 }
@@ -250,6 +265,8 @@ pub(crate) fn parse_text_element(
     // text elements parsers MUST NOT call the parser for markdown elements internally
 
     if let Ok((i, elm)) = hashtag(input) {
+        Ok((i, elm))
+    } else if let Ok((i, elm)) = fediverse_handle(input) {
         Ok((i, elm))
     } else if let Ok((i, elm)) = email_address(input) {
         Ok((i, elm))

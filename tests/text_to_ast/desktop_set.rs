@@ -313,3 +313,14 @@ fn inline_link_do_not_eat_last_char_if_it_is_special() {
         }]
     );
 }
+
+#[test]
+fn fediverse_handle() {
+    assert_eq!(
+        parse_desktop_set("@test@test.com"),
+        vec![LabeledLink {
+            label: vec![Text("@test@test.com")],
+            destination: link_destination_for_testing("https://test.com/@test")
+        }]
+    );
+}

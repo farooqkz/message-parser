@@ -92,7 +92,7 @@ pub(crate) fn fediverse_handle(input: &str) -> IResult<&str, Element, CustomErro
         instance = instance.strip_suffix('.').unwrap();
     }
     let url = format!("https://{instance}/@{handle}");
-    let dest = LinkDestination::parse_standalone_with_whitelist(<&str>::clone(url.as_str()))?.1;
+    let dest = LinkDestination::parse(&url)?.1;
     let label = format!("@{handle}@{instance}");
     Ok((instance, Element::LabeledLink { label: vec![Element::Text(&label)], destination: dest }))
 }
